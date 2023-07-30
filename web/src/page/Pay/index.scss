@@ -1,0 +1,122 @@
+.checkout {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f7f9;
+  // https://www.pexels.com/photo/black-ball-point-pen-with-brown-spiral-notebook-733852/
+  background: url(https://images.pexels.com/photos/733852/pexels-photo-733852.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1) no-repeat center center fixed;
+  .rdtDays{
+    line-height: 17px;
+  }
+  background-size: cover;
+  &__form {
+    background-color: white;
+    padding: 30px;
+    width: 600px;
+  }
+  .pay_p >p{
+    line-height: 20px;
+    font-size: 12px;
+  }
+
+  .inter{
+    height: 10px;
+    line-height: 10px;
+    font-size: 12px;
+    color: red;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+  }
+
+  &__confirmationRow {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  .checkout__confirmationRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    margin-top: 16px;
+  }
+
+  .checkout__confirmationRow p:first-of-type {
+    font-weight: bold;
+    margin-right: 20px;
+    min-width: 200px;
+  }
+
+  .checkout__confirmationRow p:last-of-type {
+    text-align: right;
+    color: #999;
+    margin-left: auto;
+  }
+
+  .checkout__confirmationRow .checkout__price {
+    color: #555;
+    font-weight: bold;
+  }
+
+  .checkout__confirmationRow .qty {
+    background-color: #e8e8e8;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin-left: 20px;
+  }
+  .checkout__form {
+    max-width: 450px;
+    width: 100%;
+    margin: auto;
+    padding: 30px;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    top: -32px;
+  }
+
+  .checkout__form .MuiTypography-h6 {
+    color: #354f52;
+    margin-bottom: 20px;
+  }
+
+  .checkout__form .MuiTypography-subtitle1 {
+    color: #354f52;
+    font-size: 14px;
+  }
+
+  .checkout__form .MuiInputBase-input,
+  .checkout__form .MuiInputBase-root {
+    color: #354f52;
+  }
+
+  .checkout__form .MuiInput-underline:after {
+    border-bottom-color: #4d85bd;
+  }
+
+  .checkout__form .MuiStepIcon-root.MuiStepIcon-active {
+    color: #4d85bd;
+  }
+
+  .checkout__form .checkout__actions button {
+    color: #fff;
+    background-color: #4d85bd;
+  }
+
+  .checkout__form .checkout__confirmationRow {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+}

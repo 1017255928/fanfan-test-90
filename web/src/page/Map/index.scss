@@ -1,0 +1,10 @@
+.map {
+  button[aria-label="关闭"] {
+    display: none !important;
+  }
+  .gm-style-iw-d {
+    > div > div {
+      margin-left: 8px;
+    }
+  }
+}

@@ -1,0 +1,16 @@
+.add-row {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  border-top: 1px solid #ccc;
+  padding-top: 16px;
+
+  > * {
+    margin-right: 8px;
+  }
+
+  input[type="checkbox"] {
+    transform: scale(1.5);
+    margin-right: 8px;
+  }
+}

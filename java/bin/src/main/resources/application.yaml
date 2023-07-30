@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:book_db.db
+  jpa:
+    database-platform: org.sqlite.hibernate.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+      cache:
+        use_second_level_cache: false
+        use_query_cache: false
+  web:
+    resources:
+      static-locations: classpath:/static/,file:/data/static/
+
+file:
+  upload-dir: classpath:/static/images/
