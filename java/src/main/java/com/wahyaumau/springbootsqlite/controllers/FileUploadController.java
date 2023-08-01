@@ -33,13 +33,9 @@ public class FileUploadController {
         try {
             // 获取文件名
             String fileName = file.getOriginalFilename();
-            System.out.println(fileName);
             // 构造文件保存路径
             Resource resource = resourceLoader.getResource(uploadDir);
-            System.out.println(uploadDir);
             String filePath = resource.getFile().getAbsolutePath() + File.separator + fileName;
-            System.out.println(filePath);
-            System.out.println(filePath);
             // 保存文件
             file.transferTo(new File(filePath));
             // 返回文件URL

@@ -50,6 +50,9 @@ function Register() {
   };
 
   const handlePhoneChange = event => {
+    if(event.target.value.length > 10){
+      return Alert('Please input correct phone number')
+    }
     setPhone(event.target.value);
   };
 
@@ -78,16 +81,16 @@ function Register() {
       password,
     };
     if(!(/([a-z])/.test(password))){
-      return Alert('缺少小写字母')
+      return Alert('The password Missing lowercase letters')
     }
     if(!(/([A-Z])/.test(password))){
-      return Alert('缺少大写字母')
+      return Alert('The password Missing capital letters')
     }
     if(!(/([0-9])/.test(password))){
-      return Alert('缺少数字')
+      return Alert('Password missing digits')
     }
     if(password.length < 8){
-      return Alert('密码必须大于8位数')
+      return Alert('The password must be larger than 8 digits')
     }
     if (Object.values(data).filter(item => !item).length) {
       return Alert("Complete information entry");
@@ -99,7 +102,7 @@ function Register() {
       return Alert("The man-machine check fails");
     }
     if(!(/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/.test(nickname))){
-      return Alert("请输入正确的邮箱");
+      return Alert("Please enter the correct email address");
     }
     data = {
       ...data,
@@ -130,7 +133,7 @@ function Register() {
         <img src="./images/background.png" alt="Login image" />
       </div>
       <div className="form-container">
-        <h2>Regoster</h2>
+        <h2>register</h2>
         <form onSubmit={handleSubmit}>
           <TextField
             label="email"

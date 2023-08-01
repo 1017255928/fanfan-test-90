@@ -126,7 +126,7 @@ export default function CustomizedTables() {
         onClick={() => [setMsg(""), setOpen(true)]}
         variant="contained"
       >
-        新增
+        add
       </Button>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 700 }} aria-label="customized table">

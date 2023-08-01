@@ -32,16 +32,19 @@ const ChangePasswordDialog = ({ open, onClose }) => {
 
     
     if(!(/([a-z])/.test(newPassword))){
-      return Alert('缺少小写字母')
+      return Alert('Missing lowercase letters')
     }
     if(!(/([A-Z])/.test(newPassword))){
-      return Alert('缺少大写字母')
+      return Alert('Missing capital letters')
     }
     if(!(/([0-9])/.test(newPassword))){
-      return Alert('缺少数字')
+      return Alert('Missing number')
+    }
+    if(!(/[!@#$%^&*()+\=\[\]{};':"\\|,.<>\/?]/.test(newPassword))){
+      return Alert('missing special symbol')
     }
     if(newPassword.length < 8){
-      return Alert('密码必须大于8位数')
+      return Alert('The password must be larger than 8 digit')
     }
 
     // ...

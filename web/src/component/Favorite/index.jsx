@@ -47,7 +47,7 @@ export default function Favorite() {
   }, [index]);
 
   const deleteIcon = row => {
-    var confirmed = window.confirm("确定要执行此操作吗？");
+    var confirmed = window.confirm("Are you sure you want to do this?");
     if (!confirmed) {
       return;
     }

@@ -3,6 +3,7 @@ import { Button, TextField } from "@mui/material";
 import ChangePasswordDialog from "./Password";
 import { useNavigate } from "react-router-dom";
 import { AccountCircle, Person, Description, Phone } from "@mui/icons-material";
+import SliderCaptcha from "../SliderCaptcha";
 import fetch from "../../fetch";
 import Alert from "../Alert";
 import "./index.scss";
@@ -11,13 +12,15 @@ let userInfo = sessionStorage.userInfo
   ? JSON.parse(sessionStorage.userInfo)
   : {};
 
+let password = userInfo.password || ""
+
 function Register() {
   const [nickname, setNickname] = useState(userInfo.nickname || "");
   const [name, setName] = useState(userInfo.name || "");
   const [intro, setIntro] = useState(userInfo.intro || "");
   const [phone, setPhone] = useState(userInfo.phone || "");
   const [category, setCategory] = useState(userInfo.category || "");
-  const [password, setPassword] = useState(userInfo.password || "");
+  const [isCode, setIsCode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const history = useNavigate();
 
@@ -29,8 +32,9 @@ function Register() {
 
   const handleClose = res => {
     if (typeof res === "string") {
-      setPassword(res);
-      handleSubmit();
+      password = res
+      console.log(res)
+      handleSubmit(false);
     }
     setOpen(false);
   };
@@ -55,14 +59,6 @@ function Register() {
     setPhone(event.target.value);
   };
 
-  const handlePasswordChange = event => {
-    setPassword(event.target.value);
-  };
-
-  const handleMouseDownPassword = event => {
-    event.preventDefault();
-  };
-
   const handleSubmit = event => {
     event && event.preventDefault();
     const data = {
@@ -74,6 +70,9 @@ function Register() {
       category,
       password,
     };
+    if (event !== false && !isCode) {
+      return Alert("The man-machine verification fails. Procedure");
+    }
     fetch(
       "/user/" + userInfo.id,
       {
@@ -86,10 +85,16 @@ function Register() {
           ...userInfo,
           ...data,
         });
-        window.location.reload();
+        // window.location.reload();
       }
     );
   };
+
+  
+  const callback = e => {
+    setIsCode(e);
+  };
+
 
   return (
     <div className="info-container">
@@ -160,6 +165,9 @@ function Register() {
           }}
           margin="normal"
         />
+        <div style={{ marginBottom: "4%" }}>
+          <SliderCaptcha callback={callback} />
+        </div>
         <ChangePasswordDialog open={open} onClose={handleClose} />
         {/* <TextField
           label="Password"

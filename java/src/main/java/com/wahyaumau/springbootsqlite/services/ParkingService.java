@@ -19,7 +19,6 @@ public class ParkingService {
 
     public BaseResponse findAll(Map<String, String> test){
         List<Parking> result = null;
-        System.out.println(test);
         if(test.get("name") != null && !test.get("name").isEmpty()){
             result = repository.findByNameContainingOrDescriptionContainingOrAddressContaining(test.get("name"),test.get("name"),test.get("name"));
         }
@@ -43,7 +42,6 @@ public class ParkingService {
             while (iterator.hasNext()) {
                 Parking parking = iterator.next();
                 List<Reserve> reserve = parking.getReserve();
-                System.out.println(parking.getName());
                 for (int j = 0; j < reserve.size(); j++) {
                     Reserve reservation = reserve.get(j);
                     Date start = reservation.getStart_time();
@@ -71,6 +69,8 @@ public class ParkingService {
     }
 
     public Parking findById(long id){
+
+        System.out.println("id: " + id);
         return repository.findById(id).orElseThrow(() -> new NotFoundException("Author with id " + id +" not found"));
     }
 

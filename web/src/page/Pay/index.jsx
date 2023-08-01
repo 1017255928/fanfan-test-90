@@ -25,9 +25,9 @@ import "./index.scss";
 import { useMemo } from "react";
 
 const steps = [
-  { label: "基础信息", icon: <FaInfoCircle /> },
-  { label: "支付确认", icon: <FaCreditCard /> },
-  { label: "确认订单", icon: <FaCheck /> },
+  { label: "Basic Information", icon: <FaInfoCircle /> },
+  { label: "Payment", icon: <FaCreditCard /> },
+  { label: "Conformation", icon: <FaCheck /> },
 ];
 
 function convertTimeStr(isoTime) {
@@ -112,9 +112,46 @@ const Checkout = () => {
   }, []);
 
   const handleNext = () => {
+    if (activeStep === 0) {
+      if (!startTime || !endTime) {
+        return Alert("Please select a start and end time");
+      }
+      if (new Date(startTime).getTime() >= new Date(endTime).getTime()) {
+        return Alert("The end time should be before the start time");
+      }
+    } else if (activeStep === 1) {
+      if (!formData.cardName) {
+        return Alert("The name of the cardholder is blank");
+      }
+      if (!formData.cardNumber) {
+        return Alert("The cardholder card number is empty");
+      }
+      if (!formData.expirationDate) {
+        return Alert("The cardholder expiration time is empty");
+      }
+      if (!formData.securityCode) {
+        return Alert("The security code is empty");
+      }
+    }
+
     setActiveStep(activeStep + 1);
   };
 
+  const onBlur = event => {
+    var currentDate = new Date();
+    var year = currentDate.getFullYear();
+    var month = currentDate.getMonth() + 1;
+    if (
+      new Date(`${event.target.value}`).getTime() < new Date(`${year}-${month}-01`).getTime()
+    ) {
+      setFormData(res => ({
+        ...res,
+        expirationDate: '',
+      }))
+      return Alert('The card has expired and cannot be paid')
+    }
+  };
+  
   const handleBack = () => {
     if (typeNum) {
       history("/table/history");
@@ -123,79 +160,64 @@ const Checkout = () => {
     setActiveStep(activeStep - 1);
   };
 
-  const goClick = () => {
-    // 处理钱 拿到之前的 然后计算后从新用
-    const { user_id } = JSON.parse(sessionStorage.item);
-    fetch(
-      "/user/" + user_id,
+  const goClick = async () => {
+    
+    // 计算自己的积分 (实际积分的积分)
+    await fetch(
+      "/user/" + userInfo.id,
       {
         method: "get",
       },
-      res => {
+      async res => {
         if (res.code === "200") {
-          // 计算商家的金额
-          var cw = amount + intergral / 10;
-          fetch(
-            "/user/" + user_id,
-            {
-              method: "PUT",
-              body: JSON.stringify({
-                ...res.data,
-                point_minute: Number(res.data.point_minute) + cw * 0.85,
-              }),
-            },
-            res => {}
-          );
-          const integral =
-            Number(res.data.integral || 0) + Number(parseInt(amount / 10));
+          const jf = Number(res.data.integral || 0) -
+            parseInt(Number(intergral));
           // 计算自己的积分
-          fetch(
+          await fetch(
             "/user/" + userInfo.id,
             {
               method: "PUT",
               body: JSON.stringify({
                 ...userInfo,
-                integral,
+                integral: jf,
               }),
             },
-            res => {
-              const data = {
-                user_id: userInfo.id,
-                start_time: convertTimeStr(startTime),
-                end_time: convertTimeStr(endTime),
-                service_change: amount * 0.15,
-                bank_card: formData.cardNumber,
-                bank_name: formData.cardName,
-                bank_code: formData.securityCode,
-                bank_time: formData.expirationDate,
-                price: amount,
-                integral,
-                type: isType,
-                parking_id: payItem.id,
-                total_prices: amount + amount * 0.15,
-                state: 4,
-              };
-              fetch(
-                "/reserve",
-                {
-                  method: "POSt",
-                  body: JSON.stringify(data),
-                },
-                res => {
-                  if (res.code === "200") {
-                    Alert("success");
-                    setTimeout(() => {
-                      history("/table/history");
-                    }, 1000);
-                  }
-                }
-              );
-            }
+            res => {}
           );
         }
       }
     );
-
+    const data = {
+      user_id: userInfo.id,
+      start_time: convertTimeStr(startTime),
+      end_time: convertTimeStr(endTime),
+      service_change: amount * 0.15,
+      bank_card: formData.cardNumber,
+      bank_name: formData.cardName,
+      bank_code: formData.securityCode,
+      bank_time: formData.expirationDate,
+      price: amount,
+      integral: Number(parseInt(amount / 10)),//能获得多少积分
+      type: isType,
+      parking_id: payItem.id,
+      total_prices: amount,
+      state: 4,
+    };
+    await fetch(
+      "/reserve",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
+      res => {
+        if (res.code === "200") {
+          Alert("success");
+          setTimeout(() => {
+            history("/table/history");
+          }, 1000);
+        }
+      }
+    );
     return;
   };
 
@@ -208,19 +230,14 @@ const Checkout = () => {
     const newEndTime = new Date(convertTimeStr(endTime));
     const totalMs = Math.abs(newEndTime - newStartTime); // 计算两个时间的时间差（毫秒）
     const totalHours = totalMs / (60 * 60 * 1000); // 将时间差转换为小时数
-    if (totalHours <= 9) {
-      const amount = Math.ceil(totalHours) * payItem.price_per_hour;
-      isType = 2;
-      return amount - intergral / 10;
-    } else {
-      const days = Math.floor(totalHours / 24); // 计算停车的天数
-      const remainderHours = totalHours % 24; // 计算除去整天后剩余的小时数
-      const amount =
-        days * payItem.price_per_day +
-        Math.ceil(remainderHours / 9) * payItem.price_per_day;
-      isType = 1;
-      return amount - intergral / 10;
-    }
+    // 算出有多少天
+    let toDay = parseInt(totalHours / 24);
+    // 算出剩余多少小时
+    let toHour = totalHours % 24;
+    toHour = Math.ceil(toHour);
+    let amount =
+      toDay * payItem.price_per_day + toHour * payItem.price_per_hour;
+    return amount - intergral / 10;
   }, [startTime, endTime, intergral]);
 
   const isSelect = (startTime, endTime) => {
@@ -261,19 +278,10 @@ const Checkout = () => {
       "min",
       moment(start_time).format("YYYY-MM-DDTHH:mm")
     );
-    startName.setAttribute(
-      "max",
-      moment(end_time).format("YYYY-MM-DDTHH:mm")
-    );
-    
-    endName.setAttribute(
-      "min",
-      moment(start_time).format("YYYY-MM-DDTHH:mm")
-    );
-    endName.setAttribute(
-      "max",
-      moment(end_time).format("YYYY-MM-DDTHH:mm")
-    );
+    startName.setAttribute("max", moment(end_time).format("YYYY-MM-DDTHH:mm"));
+
+    endName.setAttribute("min", moment(start_time).format("YYYY-MM-DDTHH:mm"));
+    endName.setAttribute("max", moment(end_time).format("YYYY-MM-DDTHH:mm"));
   }, []);
 
   useEffect(() => {
@@ -312,10 +320,10 @@ const Checkout = () => {
     s && setEndTime(e.target.value);
   };
   const integralChange = e => {
-    console.log(e.target.value)
-    if(!e.target.value){
-      setIntergral('')
-      return
+    console.log(e.target.value);
+    if (!e.target.value) {
+      setIntergral("");
+      return;
     }
     if (isNaN(parseInt(e.target.value))) {
       return;
@@ -330,7 +338,7 @@ const Checkout = () => {
     <div className="checkout">
       <div className="checkout__form">
         <Typography variant="h6" gutterBottom>
-          计费信息
+          payment information
         </Typography>
 
         {!typeNum && (
@@ -352,7 +360,7 @@ const Checkout = () => {
               }}
             >
               <TextField
-                label="发布者名称"
+                label="Provider"
                 name="publisherName"
                 fullWidth
                 disabled
@@ -362,7 +370,7 @@ const Checkout = () => {
                 }}
               />
               <TextField
-                label="车位位置"
+                label="Location"
                 name="parkingLocation"
                 onChange={handleChange}
                 disabled
@@ -375,7 +383,7 @@ const Checkout = () => {
                 }}
               />
               <TextField
-                label="可停放类型"
+                label="Car type"
                 name="parkingPrice"
                 fullWidth
                 disabled
@@ -386,7 +394,7 @@ const Checkout = () => {
               />
 
               <TextField
-                label="预定类型"
+                label="Reservation type"
                 name="subscriptionPlan"
                 select
                 fullWidth
@@ -397,11 +405,11 @@ const Checkout = () => {
                   startAdornment: <FaParking style={{ marginRight: "8px" }} />,
                 }}
               >
-                <option value="day">${payItem.price_per_day}/天</option>
-                <option value="hour">${payItem.price_per_hour}/小时</option>
+                <option value="day">${payItem.price_per_day}/Day</option>
+                <option value="hour">${payItem.price_per_hour}/Hour</option>
               </TextField>
               <TextField
-                label="开始时间"
+                label="Start Time"
                 name="startTime"
                 fullWidth
                 value={startTime}
@@ -417,10 +425,11 @@ const Checkout = () => {
               />
 
               <TextField
-                label="结束时间"
+                label="End Time"
                 name="endTime"
                 fullWidth
                 value={endTime}
+                min={startTime}
                 onChange={e => endTimeFun(e)}
                 type={"datetime-local"}
                 InputProps={{
@@ -433,7 +442,7 @@ const Checkout = () => {
               />
 
               <TextField
-                label="积分抵扣"
+                label="Point"
                 name="publisherName"
                 onChange={e => integralChange(e)}
                 value={intergral}
@@ -442,16 +451,16 @@ const Checkout = () => {
                 }}
               />
               <p className="inter">
-                积分抵扣规则：10积分兑换1美元，可使用积分：{userInfo.integral}
+                Rules for points: 10 points for 1 dollar.Point balance: {userInfo.integral}
               </p>
               <div className="pay_p">
                 <p style={{ textAlign: "right" }}>
-                  积分抵扣：{intergral / 10}元
+                  Point Discount：{intergral / 10}
                 </p>
                 <p style={{ textAlign: "right" }}>
-                  总金额：{amount + intergral / 10}元
+                  Total Balance：{amount + intergral / 10}
                 </p>
-                <p style={{ textAlign: "right" }}>需支付价格：{amount}元</p>
+                <p style={{ textAlign: "right" }}>Payment：{amount}</p>
               </div>
             </div>
           )}
@@ -463,50 +472,69 @@ const Checkout = () => {
               }}
             >
               <Typography variant="h6" gutterBottom>
-                支付信息
+                payment information
               </Typography>
               <TextField
-                label="持卡人姓名"
+                label="card holder"
                 InputProps={{
                   startAdornment: <FaUser style={{ marginRight: "8px" }} />,
                 }}
                 name="cardName"
                 value={formData.cardName}
-                onChange={handleChange}
+                onChange={event =>
+                  setFormData(res => ({ ...res, cardName: event.target.value }))
+                }
                 fullWidth
               />
               <TextField
-                label="卡号"
+                label="card number"
                 InputProps={{
                   startAdornment: (
                     <FaCreditCard style={{ marginRight: "8px" }} />
                   ),
                 }}
                 name="cardNumber"
+                onChange={event =>
+                  setFormData(res => ({
+                    ...res,
+                    cardNumber: event.target.value,
+                  }))
+                }
                 value={formData.cardNumber}
-                onChange={handleChange}
                 fullWidth
               />
               <TextField
-                label="过期日期"
-                name="expirationDate"
+                label="expiration date"
+                name="expirationDate" 
+                className="muiFormControl-root-date"
+                onBlur={onBlur}
+                type={"date"}
                 InputProps={{
                   startAdornment: (
                     <FaCalendarAlt style={{ marginRight: "8px" }} />
                   ),
                 }}
+                onChange={event =>
+                  setFormData(res => ({
+                    ...res,
+                    expirationDate: event.target.value,
+                  }))
+                }
                 value={formData.expirationDate}
-                onChange={handleChange}
-                fullWidth
               />
               <TextField
-                label="安全码"
+                label="CVC"
                 name="securityCode"
                 InputProps={{
                   startAdornment: <FaLock style={{ marginRight: "8px" }} />,
                 }}
                 value={formData.securityCode}
-                onChange={handleChange}
+                onChange={event =>
+                  setFormData(res => ({
+                    ...res,
+                    securityCode: event.target.value,
+                  }))
+                }
                 fullWidth
               />
             </div>
@@ -521,62 +549,62 @@ const Checkout = () => {
 
               <div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">发布者名称</Typography>
+                  <Typography variant="subtitle1">name</Typography>
                   <Typography variant="subtitle1">{formData?.name}</Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">车位位置</Typography>
+                  <Typography variant="subtitle1">address</Typography>
                   <Typography variant="subtitle1">{payItem.address}</Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">姓名</Typography>
+                  <Typography variant="subtitle1">card holder</Typography>
                   <Typography variant="subtitle1">
                     {formData.cardName}
                   </Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">卡号</Typography>
+                  <Typography variant="subtitle1">card number</Typography>
                   <Typography variant="subtitle1">
                     {formData.cardNumber}
                   </Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">过期日期</Typography>
+                  <Typography variant="subtitle1">expiration date</Typography>
                   <Typography variant="subtitle1">
                     {formData.expirationDate}
                   </Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">安全码</Typography>
+                  <Typography variant="subtitle1">CVC</Typography>
                   <Typography variant="subtitle1">
                     {formData.securityCode}
                   </Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">预定类型</Typography>
+                  <Typography variant="subtitle1">Predetermined type</Typography>
                   <Typography variant="subtitle1">
                     $
                     {subscriptionPlan === "day"
                       ? (formData.price_per_day || payItem.price_per_day) +
-                        "/天"
+                        "/day"
                       : (formData.price_per_hour || payItem.price_per_hour) +
-                        "/小时"}
+                        "/hour"}
                   </Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">开始时间</Typography>
+                  <Typography variant="subtitle1">start time</Typography>
                   <Typography variant="subtitle1">
                     {!typeNum ? convertTimeStr(startTime) : formData.start_time}
                   </Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">结束时间</Typography>
+                  <Typography variant="subtitle1">end time</Typography>
                   <Typography variant="subtitle1">
                     {!typeNum ? convertTimeStr(endTime) : formData.end_time}
                   </Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">车位价格</Typography>
+                  <Typography variant="subtitle1">Parking spaces</Typography>
                   <Typography variant="subtitle1">
                     {!typeNum
                       ? amount + intergral / 10
@@ -590,11 +618,11 @@ const Checkout = () => {
                   </Typography>
                 </div> */}
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">积分抵扣</Typography>
+                  <Typography variant="subtitle1">Point deduction</Typography>
                   <Typography variant="subtitle1">{intergral / 10}</Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">总金额</Typography>
+                  <Typography variant="subtitle1">total money</Typography>
                   <Typography variant="subtitle1">
                     {!typeNum
                       ? Number(amount)
@@ -609,7 +637,7 @@ const Checkout = () => {
               <div></div>
             ) : (
               <Button onClick={handleBack}>
-                {typeNum ? "返回" : "上一步"}
+                {typeNum ? "go back" : "previous"}
               </Button>
             )}
             {!typeNum && activeStep === steps.length - 1 ? (
@@ -618,7 +646,7 @@ const Checkout = () => {
                 color="primary"
                 onClick={() => goClick()}
               >
-                提交订单
+                submit
               </Button>
             ) : (
               !typeNum && (
@@ -627,11 +655,11 @@ const Checkout = () => {
                   color="primary"
                   onClick={handleNext}
                 >
-                  下一步
+                  Next
                 </Button>
               )
             )}
-            {!typeNum && <div style={{ color: "red" }}>有效期：{seconds}</div>}
+            {!typeNum && <div style={{ color: "red" }}>timer：{seconds}</div>}
           </div>
         </div>
       </div>

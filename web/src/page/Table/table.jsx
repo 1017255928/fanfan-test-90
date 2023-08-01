@@ -57,7 +57,7 @@ export default function CustomizedTables() {
               <StyledTableCell align="right">Fat&nbsp;(g)</StyledTableCell>
               <StyledTableCell align="right">Carbs&nbsp;(g)</StyledTableCell>
               <StyledTableCell align="right">Protein&nbsp;(g)</StyledTableCell>
-              <StyledTableCell align="right">操作</StyledTableCell>
+              <StyledTableCell align="right">Option</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -72,8 +72,8 @@ export default function CustomizedTables() {
                 <StyledTableCell align="right">{row.protein}</StyledTableCell>
                 <StyledTableCell component="th" scope="row">
                   <div>
-                    <Button onClick={() => setOpen(true)}>成功</Button>
-                    <Button onClick={() => setOpen(true)}>拒绝</Button>
+                    <Button onClick={() => setOpen(true)}>succeed</Button>
+                    <Button onClick={() => setOpen(true)}>reject</Button>
                   </div>
                 </StyledTableCell>
               </StyledTableRow>

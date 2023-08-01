@@ -36,6 +36,52 @@ body {
   margin-left: 40px;
   color: #999;
 }
+
+/* 更改选择器样式 */
+input[type="datetime-local"]::-webkit-datetime-edit {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* 更改日期部分样式 */
+input[type="datetime-local"]::-webkit-inner-spin-button,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* chrome 73so.com */ 
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+/* 火狐浏览器 */
+input[type="number"]{
+    -moz-appearance: textfield;
+    height: 30px;
+    line-height: 30px;
+}
+
+/* 更改不可选部分样式 */
+input[type="datetime-local"]::-webkit-datetime-edit-ampm-field,
+input[type="datetime-local"]::-webkit-datetime-edit-day-field,
+input[type="datetime-local"]::-webkit-datetime-edit-hour-field,
+input[type="datetime-local"]::-webkit-datetime-edit-minute-field,
+input[type="datetime-local"]::-webkit-datetime-edit-month-field,
+input[type="datetime-local"]::-webkit-datetime-edit-second-field,
+input[type="datetime-local"]::-webkit-datetime-edit-week-field,
+input[type="datetime-local"]::-webkit-datetime-edit-year-field {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;

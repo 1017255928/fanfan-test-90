@@ -24,9 +24,9 @@ export default function NavBar() {
       </div>
       <div className="nav-bar-right">
         {!userInfo && (
-          <Button onClick={() => history("/register")}>注册</Button>
+          <Button onClick={() => history("/register")}>register</Button>
         )}
-        {!userInfo && <Button onClick={() => history("/login")}>登录</Button>}
+        {!userInfo && <Button onClick={() => history("/login")}>log in</Button>}
         {userInfo && (
           <Button
             onClick={() => history("/table")}

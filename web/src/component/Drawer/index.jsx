@@ -43,11 +43,16 @@ export default function TemporaryDrawer(props) {
   const [size, setSize] = useState("");
 
   function newDay(s) {
-    const date = new Date(s);
+    const date = new Date(s.split('.')[0]);
     const year = date.getFullYear(); // 获取年份
     const month = String(date.getMonth() + 1).padStart(2, "0"); // 月份前面补0
     const day = String(date.getDate()).padStart(2, "0"); // 日期前面补0
-    return `${year}-${month}-${day}`;
+
+    const hours =
+      date.getHours() >= 10 ? date.getHours() : "0" + date.getHours();
+    const minutes =
+      date.getMinutes() > 10 ? date.getMinutes() : "0" + date.getMinutes();
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
   useEffect(() => {
@@ -68,19 +73,26 @@ export default function TemporaryDrawer(props) {
     setAddressNum(res);
   }, []);
 
-  const isEndTime = (e) => {
-    console.log(e.target.value)
-    setEndTime(e.target.value)
+  const isEndTime = e => {
+    setEndTime(e.target.value);
+  };
+
+  const isBlur = e => {
+    if(new Date(startTime).getTime() < new Date().getTime()){
+      setStartTime("");
+      return Alert("The start time should be longer than the current time");
+    }
+    if (new Date(startTime).getTime() >= new Date(endTime).getTime()) {
+      setEndTime("");
+      return Alert("The end time should be before the start time");
+    }
+  };
+
+  const changeTime = res => {
+    setStartTime(res)
   }
 
   const addOrUpdate = res => {
-    if(!startTime){
-      return Alert('必须输入开始时间')
-    }
-    if(new Date(endTime).getTime() < new Date(startTime).getTime()){
-      return Alert('结束时间必须大于开始时间')
-    }
-    return
     let data = {
       name,
       description,
@@ -89,7 +101,8 @@ export default function TemporaryDrawer(props) {
       address,
       standard,
     };
-    data.user_id = props?.msg?.user_id || JSON.parse(sessionStorage.userInfo)?.id;
+    data.user_id =
+      props?.msg?.user_id || JSON.parse(sessionStorage.userInfo)?.id;
     var mew_img = JSON.parse(JSON.stringify(imgs));
     data.images = mew_img.join(",");
     data.visible = 1;
@@ -99,6 +112,47 @@ export default function TemporaryDrawer(props) {
     data.end_time = endTime;
     data.to_access = toAccess;
     data.size = size;
+
+    if (!name) {
+      return Alert("title is empty");
+    }
+    if (!description) {
+      return Alert("description is empty");
+    }
+    if (!price_per_day) {
+      return Alert("Price per day is empty");
+    }
+    if (!price_per_hour) {
+      return Alert("Price per hour");
+    }
+    if (!toAccess) {
+      return Alert("Access mode is empty");
+    }
+
+    if (!endTime || !startTime) {
+      return Alert("Time required");
+    }
+
+    if (!data.images) {
+      return Alert("Please upload pictures");
+    }
+
+    if (new Date(startTime).getTime() >= new Date(endTime).getTime()) {
+      return Alert("The end time should be before the start time");
+    }
+
+    if (!address) {
+      return Alert("address is empty");
+    }
+    if (!standard) {
+      return Alert("standard is empty");
+    }
+    if (!size) {
+      return Alert("size is empty");
+    }
+    if (!addressNum.lat) {
+      return Alert("missing location on map");
+    }
 
     if (props.msg) {
       xhr(
@@ -137,7 +191,7 @@ export default function TemporaryDrawer(props) {
         <div className="drawer">
           <div>
             <div className="drawer-item">
-              <span>title</span>
+              <span>Title</span>
               <Input
                 value={name}
                 disabled={props.disabled}
@@ -161,7 +215,7 @@ export default function TemporaryDrawer(props) {
               <Input
                 disabled={props.disabled}
                 value={price_per_day}
-                type={'number'}
+                type={"number"}
                 onChange={e => setPricePerDay(e.target.value)}
               />
             </div>
@@ -169,7 +223,7 @@ export default function TemporaryDrawer(props) {
               <span>Price per hour</span>
               <Input
                 value={price_per_hour}
-                type={'number'}
+                type={"number"}
                 disabled={props.disabled}
                 onChange={e => setPricePerHour(e.target.value)}
               />
@@ -185,7 +239,7 @@ export default function TemporaryDrawer(props) {
               />
             </div>
             <div className="drawer-item">
-              <span>访问方式</span>
+              <span>Access mode</span>
               <Input
                 value={toAccess}
                 disabled={props.disabled}
@@ -198,18 +252,19 @@ export default function TemporaryDrawer(props) {
               />
             </div>
             <div className="drawer-item" style={{ display: "flex" }}>
-              <span>可选的时间</span>
+              <span>Optional time</span>
               <div>
                 <div>
                   <label
                     style={{ marginRight: "10px", fontSize: "12px" }}
                     for="start"
                   >
-                    开始时间:
+                    start time:
                   </label>
                   <input
                     value={startTime}
-                    onChange={e => setStartTime(e.target.value)}
+                    onBlur={() => isBlur()}
+                    onChange={e => changeTime(e.target.value)}
                     defaultValue={new Date().toISOString().split("T")[0]}
                     min={new Date().toISOString().split("T")[0]}
                     type="datetime-local"
@@ -221,11 +276,14 @@ export default function TemporaryDrawer(props) {
                     style={{ marginRight: "10px", fontSize: "12px" }}
                     for="end"
                   >
-                    结束时间:
+                    end time:
                   </label>
                   <input
-                    defaultValue={startTime || new Date().toISOString().split(".")[0]}
+                    defaultValue={
+                      startTime || new Date().toISOString().split(".")[0]
+                    }
                     value={endTime}
+                    onBlur={() => isBlur()}
                     onChange={e => isEndTime(e)}
                     min={startTime}
                     type="datetime-local"
@@ -234,7 +292,7 @@ export default function TemporaryDrawer(props) {
               </div>
             </div>
             <div className="drawer-item">
-              <span>可停放类</span>
+              <span>Vehicle type</span>
               <Input
                 value={standard}
                 disabled={props.disabled}
@@ -248,7 +306,7 @@ export default function TemporaryDrawer(props) {
             </div>
           </div>
           <div className="drawer-item">
-            <span>车位大小</span>
+            <span>Size</span>
 
             <Input
               value={size}
@@ -263,7 +321,7 @@ export default function TemporaryDrawer(props) {
           </div>
 
           <div className="drawer-item" style={{ display: "flex" }}>
-            <span>地图标记</span>
+            <span>Map marker</span>
             <div>
               {addressNum.lat || props.msg?.latitude || ""},{" "}
               {addressNum.lng || props.msg?.longitude || ""}{" "}
@@ -299,14 +357,17 @@ export default function TemporaryDrawer(props) {
             <div className="img-map">
               {imgs.map(item => (
                 <div>
-                  <img style={{ width: "84px",height: "84px" }} src={item}></img>
+                  <img
+                    style={{ width: "84px", height: "84px" }}
+                    src={item}
+                  ></img>
                 </div>
               ))}
             </div>
           </div>
           <div style={{ textAlign: "center" }}>
             <Button variant="contained" onClick={() => props.setOpen(false)}>
-              取消
+              cancel
             </Button>
             {!props.disabled && (
               <Button
@@ -314,7 +375,7 @@ export default function TemporaryDrawer(props) {
                 onClick={() => addOrUpdate()}
                 variant="contained"
               >
-                {props.msg ? "修改" : "新增"}
+                submit
               </Button>
             )}
           </div>

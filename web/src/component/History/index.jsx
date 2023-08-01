@@ -7,11 +7,13 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import fetch from "../../fetch";
+import fetch, { promiseXhr } from "../../fetch";
 import { useNavigate } from "react-router-dom";
 import Button from "@mui/material/Button";
-import Pagination from "@mui/material/Pagination";
-import Stack from "@mui/material/Stack";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
 import Drawer from "../../component/Drawer";
 import ReviewForm from "./ReviewForm";
 
@@ -36,9 +38,11 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 let message = {};
+let reserveData = {};
 export default function CustomizedTables(props) {
   const [openDialog, setOpenDialog] = React.useState(false);
   const [open, setOpen] = React.useState(false);
+  const [cancelOpen, setCancelOpen] = React.useState(false);
   const [data, setData] = React.useState([]);
   const [list, setList] = React.useState([]);
   const history = useNavigate();
@@ -86,7 +90,7 @@ export default function CustomizedTables(props) {
       case "4":
         return "Success";
       case "5":
-        return "Canseled";
+        return "Completed";
 
       default:
         break;
@@ -98,14 +102,57 @@ export default function CustomizedTables(props) {
     setOpenDialog(true);
   };
 
-  const commonClick = res => {
+  const commonClick = async res => {
     const data = {
       ...message,
       comment: res.comment,
       state: 5,
       star: res.rating,
     };
-    fetch(
+    // 管理员的
+    let getUser1 = await promiseXhr("/user/1", {
+      method: "get",
+    });
+    var cw =
+      Number(getUser1.data.point_minute) + Number(message.integral) * 10 * 0.15;
+    await promiseXhr("/user/1", {
+      method: "put",
+      body: JSON.stringify({
+        ...getUser1.data,
+        point_minute: cw,
+      }),
+    });
+    // 计算商家的钱
+    let parkingUserId = await await promiseXhr(
+      "/user/" + message.parking.user_id,
+      {
+        method: "get",
+      }
+    );
+    let parkingCw = Number(message.integral) * 10;
+    await promiseXhr("/user/" + message.parking.user_id, {
+      method: "PUT",
+      body: JSON.stringify({
+        ...parkingUserId.data,
+        point_minute:
+          Number(parkingUserId.data.point_minute) + parkingCw * 0.85,
+      }),
+    });
+
+    // 计算自己的积分 (实际积分的积分)
+    let userId = await promiseXhr("/user/" + userInfo.id, {
+      method: "get",
+    });
+    const integral =
+      Number(userId.data.integral || 0) + parseInt(Number(message.integral));
+    await promiseXhr("/user/" + userInfo.id, {
+      method: "PUT",
+      body: JSON.stringify({
+        ...userInfo,
+        integral,
+      }),
+    });
+    await fetch(
       "/reserve/" + message.id,
       {
         method: "PUT",
@@ -123,7 +170,7 @@ export default function CustomizedTables(props) {
 
     // 计算时间差（单位：毫秒）
     const timeDiff = targetDateTime.getTime() - currentTime.getTime();
-    console.log(targetTime, timeDiff)
+    console.log(targetTime, timeDiff);
 
     // 将时间差转换为小时
     const hoursDiff = timeDiff / (1000 * 60 * 60);
@@ -138,19 +185,19 @@ export default function CustomizedTables(props) {
   };
 
   const updateService = (res, state) => {
-    const data = {
+    setCancelOpen(true);
+
+    reserveData = {
       ...res,
       state,
     };
-    var confirmed = window.confirm("确定要执行此操作吗？");
-    if (!confirmed) {
-      return;
-    }
+  };
+  const reserveCallback = () => {
     fetch(
-      "/reserve/" + res.id,
+      "/reserve/" + reserveData.id,
       {
         method: "PUT",
-        body: JSON.stringify(data),
+        body: JSON.stringify(reserveData),
       },
       res => {
         setIndex(res => res + 1);
@@ -158,6 +205,9 @@ export default function CustomizedTables(props) {
     );
   };
   const bookingClick = (v, data = []) => {
+    if (props.component) {
+      return setData(data);
+    }
     if (v === "current") {
       setData((data.length ? data : list).filter(itme => itme.state < 5));
     } else {
@@ -184,6 +234,7 @@ export default function CustomizedTables(props) {
             >
               post booking
             </Button>
+
             <Button onClick={() => history("/map")} variant="contained">
               new booking
             </Button>
@@ -200,7 +251,7 @@ export default function CustomizedTables(props) {
               <StyledTableCell align="right">End Time</StyledTableCell>
               <StyledTableCell align="right">Day/Hour</StyledTableCell>
               <StyledTableCell align="right">Total Fee</StyledTableCell>
-              <StyledTableCell align="right">积分</StyledTableCell>
+              <StyledTableCell align="right">point</StyledTableCell>
               {isAdmin && (
                 <StyledTableCell align="right">Earning</StyledTableCell>
               )}
@@ -242,7 +293,7 @@ export default function CustomizedTables(props) {
                 <StyledTableCell align="right" component="th" scope="row">
                   <div>
                     {row.isCancel &&
-                      row.state <= 4 &&
+                      (row.state == 1 || row.state == 4) &&
                       isWithin12Hours(row.start_time) && (
                         <Button onClick={() => updateService(row, 3)}>
                           Cancel
@@ -265,7 +316,7 @@ export default function CustomizedTables(props) {
                       </Button>
                     )} */}
                     {/* <Button onClick={() => onLocPay(row, 4)}>详情</Button> */}
-                    {row.isCancel && row.state === "4" && (
+                    {!isAdmin && row.isCancel && row.state === "4" && (
                       <Button onClick={() => updateCommon(row)}>Comment</Button>
                     )}
                     {/* {row.isCancel && (
@@ -288,6 +339,21 @@ export default function CustomizedTables(props) {
         onClick={commonClick}
         onClose={setOpenDialog}
       ></ReviewForm>
+      <Dialog open={cancelOpen} onClose={() => setCancelOpen(false)}>
+        <DialogContent>
+          <DialogContentText>
+            <div style={{ width: "500px" }}>
+              Whether to perform this operation?
+            </div>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCancelOpen(false)}>cancel</Button>
+          <Button onClick={() => [setCancelOpen(false), reserveCallback()]}>
+            submit
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Drawer open={open} msg={msgItem} disabled={true} setOpen={setOpen} />
     </div>
   );

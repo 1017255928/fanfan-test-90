@@ -11,7 +11,7 @@ function Register() {
   const [bankCard, setBankCard] = useState("");
   const [bankCode, setBankCode] = useState("");
   const [isCode, setIsCode] = useState(false);
-  const [bankTime, setBankTime] = useState("");
+  const [bankTime, setBankTime] = useState("2023-08-31");
   const [userInfo, setUserInfo] = useState(
     sessionStorage.userInfo ? JSON.parse(sessionStorage.userInfo) : {}
   );
@@ -22,9 +22,10 @@ function Register() {
         method: "get",
       },
       res => {
-        setUserInfo(res.data)
+        setUserInfo(res.data);
         setBankCode(res.data.bank_code);
-        setBankTime(res.data.bank_time);
+        setBankCard(res.data.bank_card);
+        setBankTime(res.data.bank_time || '2023-08-31');
       }
     );
   }, []);
@@ -34,7 +35,6 @@ function Register() {
   };
 
   const balanceClick = e => {
-    console.log(e);
     const data = {
       ...userInfo,
       point_minute: 0,
@@ -57,6 +57,18 @@ function Register() {
         }, 1000);
       }
     );
+  };
+
+  const onBlur = event => {
+    var currentDate = new Date();
+    var year = currentDate.getFullYear();
+    var month = currentDate.getMonth() + 1;
+    if (
+      new Date(`${event.target.value}`).getTime() < new Date(`${year}-${month}-01`).getTime()
+    ) {
+      setBankTime('')
+      return Alert('The card has expired and cannot be paid')
+    }
   };
 
   const bankClick = () => {
@@ -94,11 +106,10 @@ function Register() {
           <button onClick={balanceClick}>Withdraw</button>
         </span>
         <span>
-          积分： <span>{userInfo.integral || 0}</span>{" "}
-          <button onClick={balanceClick}>Withdraw</button>
+          Point： <span>{userInfo.integral || 0}</span>{" "}
         </span>
         <TextField
-          label="Account Name"
+          label="Card No"
           variant="outlined"
           fullWidth
           value={bankCard}
@@ -107,18 +118,20 @@ function Register() {
         />
         <div style={{ display: "flex", marginTop: "3%", marginBottom: "15px" }}>
           <TextField
-            label="BSB"
+            label="CVC"
             variant="outlined"
             style={{ marginRight: "10px" }}
             fullWidth
-            value={bankCode}
+            value={bankCode.replace(/./g, "*")}
             onChange={event => setBankCode(event.target.value)}
             margin="normal"
           />
           <TextField
-            label="Account Time"
+            label="Expiry"
             variant="outlined"
             fullWidth
+            type={"date"}
+            onBlur={onBlur}
             value={bankTime}
             onChange={event => setBankTime(event.target.value)}
             margin="normal"

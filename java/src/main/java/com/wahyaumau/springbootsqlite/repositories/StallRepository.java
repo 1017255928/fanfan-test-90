@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface StallRepository extends JpaRepository<Stall, Long> {
     List<Stall> findByNameContainingOrIntroduceContainingOrAddressContaining(String name, String introduce, String address);
-//    List<Stall> findByStart_timeBetween(Date start_time,Date end_time);
+//     List<Stall> findByStart_timeBetween(Date start_time,Date end_time);
 }

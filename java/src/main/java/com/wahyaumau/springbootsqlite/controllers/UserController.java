@@ -21,7 +21,6 @@ public class UserController {
 
     @PostMapping("/register")
     public BaseResponse register(@RequestBody User user) {
-        System.out.println(user);
         return userService.register(user);
     }
 

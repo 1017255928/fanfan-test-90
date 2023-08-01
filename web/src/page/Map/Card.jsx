@@ -142,7 +142,7 @@ export default function RecipeReviewCard(props) {
       return;
     }
     if (!userInfo.id) {
-      return "未登录";
+      return "no login";
     }
     const data = {
       user_id: userInfo.id,
@@ -226,7 +226,7 @@ export default function RecipeReviewCard(props) {
               <p style={{ color: "rgb(64 105 227)", marginTop: "7px" }}>
                 time
               </p>
-              {moment(message.start_time).format("YYYY-MM-DD HH:mm:ss")} - {moment(message.end_time).format("YYYY-MM-DD HH:mm:ss")}
+              {moment(message.start_time.split('.')[0]).format("YYYY-MM-DD HH:mm:ss")} - {moment(message.end_time.split('.')[0]).format("YYYY-MM-DD HH:mm:ss")}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               <p style={{ color: "rgb(64 105 227)", marginTop: "7px" }}>
@@ -255,10 +255,10 @@ export default function RecipeReviewCard(props) {
               分享
             </Button> */}
             <Button onClick={favoriteLink} size="small" color="primary">
-              {isFavorite ? "已收藏" : "收藏"}
+              {isFavorite ? "Collected" : "Collect"}
             </Button>
             <Button onClick={Pay} size="small" color="primary">
-              预定
+              Book
             </Button>
           </CardActions>
           <CardContent>

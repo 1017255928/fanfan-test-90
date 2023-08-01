@@ -6,7 +6,7 @@ const Alert = ({ message, closeAlert }) => (
   <div className='alert-overlay'>
     <div className='alert-box'>
       <p>{message}</p>
-      <button onClick={closeAlert}>关闭</button>
+      <button onClick={closeAlert}>close</button>
     </div>
   </div>
 );

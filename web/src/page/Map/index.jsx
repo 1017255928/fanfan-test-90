@@ -73,18 +73,6 @@ function MyComponent(props) {
           lat,
           lng,
         });
-        let set = "";
-        set = setInterval(() => {
-          if (document.querySelector(".gm-svpc")) {
-            clearInterval(set);
-            document.querySelector(".gm-svpc").onclick = () => {
-              setCenter({
-                lat,
-                lng,
-              });
-            };
-          }
-        }, 1000);
         setLogCenter({
           lat,
           lng,
@@ -113,6 +101,13 @@ function MyComponent(props) {
     });
   }, []);
 
+  const locationClick = () => {
+    setCenter({
+      lat: logCenter.lat,
+      lng: logCenter.lng,
+    });
+  };
+
   useEffect(() => {
     var url = "/parking?";
     if (time && time.endTime) {
@@ -127,6 +122,8 @@ function MyComponent(props) {
           lat: Number(item.latitude),
           lng: Number(item.longitude),
           ...item,
+          start_time: item.start_time.split(".")[0],
+          end_time: item.end_time.split(".")[0],
           images: item.images.split(","),
         }));
       let newData = data.map(location => ({
@@ -205,7 +202,9 @@ function MyComponent(props) {
         ...item,
         define: item.size + item.to_access + item.standard,
       }));
-      data = list.filter(item => item.define.indexOf(res.more) > -1);
+      data = list.filter(
+        item => item.define.toUpperCase().indexOf(res.more.toUpperCase()) > -1
+      );
     }
     if (res.collect) {
       var favorites = favorite.map(item => item.parkingId);
@@ -238,6 +237,9 @@ function MyComponent(props) {
         ) : null}
       </div>
       <div style={{ height: "100%" }}>
+        <div className="location" onClick={locationClick}>
+          <img src="/images/rz.png" alt="" />
+        </div>
         {center.lat && (
           <GoogleMap
             mapContainerStyle={containerStyle}
@@ -261,7 +263,8 @@ function MyComponent(props) {
                       textAlign: "center",
                     }}
                     onClick={() => {
-                      visibleLeft === false && history(`/map?lat=${location.lat}&lng=${location.lng}`);
+                      visibleLeft === false &&
+                        history(`/map?lat=${location.lat}&lng=${location.lng}`);
                       setMessage(location);
                       setIsItem(true);
                     }}

@@ -38,7 +38,7 @@ public class User {
     @Column(nullable = false)
     private String category;
 
-    //    消费积分 & 余额
+    //    余额
     @Column(nullable = false)
     private String point_minute;
     //    消费积分

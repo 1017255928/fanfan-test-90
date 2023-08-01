@@ -12,7 +12,12 @@ import Pagination from "@mui/material/Pagination";
 import History from "../../component/History";
 import Stack from "@mui/material/Stack";
 import fetch from "../../fetch";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
 import Drawer from "../../component/Drawer";
+let parkingRow = ""
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -43,6 +48,7 @@ const stackStyle = {
 export default function CustomizedTables() {
   const [open, setOpen] = React.useState(false);
   const [type, setType] = React.useState(1);
+  const [cancelOpen, setCancelOpen] = React.useState(false);
   const [parkings, setParkings] = React.useState([]);
   const [msgItem, setMsgItem] = React.useState("");
   React.useEffect(() => {
@@ -56,31 +62,31 @@ export default function CustomizedTables() {
       }
       setParkings(
         res.data.filter(
-          item =>
-            item.user_id == JSON.parse(sessionStorage.userInfo).id
+          item => item.user_id == JSON.parse(sessionStorage.userInfo).id
         )
       );
     });
   }, [open]);
+  const reserveCallback = () => {
+    fetch(
+      "/parking/" + parkingRow.id,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          ...parkingRow,
+          visible: "0",
+        }),
+      },
+      res => {
+        fetch("/parking", {}, res => {
+          setParkings(res.data);
+        });
+      }
+    );
+  };
   const deleteFun = row => {
-    // eslint-disable-next-line no-restricted-globals
-    if (confirm("确定要执行这个操作吗？")) {
-      fetch(
-        "/parking/" + row.id,
-        {
-          method: "PUT",
-          body: JSON.stringify({
-            ...row,
-            visible: '0',
-          }),
-        },
-        res => {
-          fetch("/parking", {}, res => {
-            setParkings(res.data);
-          });
-        }
-      );
-    }
+    parkingRow = row
+    setCancelOpen(true);
   };
   return (
     <div style={{ width: "97%", margin: "0 auto" }}>
@@ -121,7 +127,7 @@ export default function CustomizedTables() {
             style={{ marginBottom: "10px", marginRight: "10px" }}
             variant="contained"
           >
-            new booking
+            new listing
           </Button>
           <TableContainer component={Paper}>
             <Table sx={{ minWidth: 700 }} aria-label="customized table">
@@ -137,42 +143,57 @@ export default function CustomizedTables() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {parkings.filter(item => item.visible != '0').map(row => (
-                  <StyledTableRow key={row.name}>
-                    <StyledTableCell component="th" scope="row">
-                      {row.name}
-                    </StyledTableCell>
-                    <StyledTableCell align="right">
-                      {row.description}
-                    </StyledTableCell>
-                    <StyledTableCell align="right">
-                      {row.address}
-                    </StyledTableCell>
-                    <StyledTableCell align="right">
-                      {row.price_per_day}
-                    </StyledTableCell>
-                    <StyledTableCell align="right">
-                      {row.price_per_hour}
-                    </StyledTableCell>
-                    <StyledTableCell align="right">
-                      {row.latitude}
-                      {row.longitude}
-                    </StyledTableCell>
-                    <StyledTableCell align="right" component="th" scope="row">
-                      <div>
-                        <Button
-                          onClick={() => [setMsgItem(row), setOpen(true)]}
-                        >
-                          update
-                        </Button>
-                        <Button onClick={() => deleteFun(row)}>delete</Button>
-                      </div>
-                    </StyledTableCell>
-                  </StyledTableRow>
-                ))}
+                {parkings
+                  .filter(item => item.visible != "0")
+                  .map(row => (
+                    <StyledTableRow key={row.name}>
+                      <StyledTableCell component="th" scope="row">
+                        {row.name}
+                      </StyledTableCell>
+                      <StyledTableCell align="right">
+                        {row.description}
+                      </StyledTableCell>
+                      <StyledTableCell align="right">
+                        {row.address}
+                      </StyledTableCell>
+                      <StyledTableCell align="right">
+                        {row.price_per_day}
+                      </StyledTableCell>
+                      <StyledTableCell align="right">
+                        {row.price_per_hour}
+                      </StyledTableCell>
+                      <StyledTableCell align="right">
+                        {row.latitude}
+                        {row.longitude}
+                      </StyledTableCell>
+                      <StyledTableCell align="right" component="th" scope="row">
+                        <div>
+                          <Button
+                            onClick={() => [setMsgItem(row), setOpen(true)]}
+                          >
+                            update
+                          </Button>
+                          <Button onClick={() => deleteFun(row)}>delete</Button>
+                        </div>
+                      </StyledTableCell>
+                    </StyledTableRow>
+                  ))}
               </TableBody>
             </Table>
           </TableContainer>
+          <Dialog open={cancelOpen} onClose={() => setCancelOpen(false)}>
+            <DialogContent>
+              <DialogContentText>
+                <div style={{ width: "500px" }}>Whether to perform this operation?</div>
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setCancelOpen(false)}>cancel</Button>
+              <Button onClick={() => [setCancelOpen(false), reserveCallback()]}>
+              submit
+              </Button>
+            </DialogActions>
+          </Dialog>
         </div>
       )}
       <Drawer open={open} msg={msgItem} setOpen={setOpen} />
