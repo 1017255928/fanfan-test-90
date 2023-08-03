@@ -18,7 +18,7 @@ const ChangePasswordDialog = ({ open, onClose }) => {
 
   const handleConfirm = () => {
     if (!isCode) {
-      return Alert("The man-machine verification fails. Procedure");
+      return Alert("The man-machine check is failed");
     }
     
     // 在这里处理确认按钮的逻辑

@@ -39,14 +39,14 @@ const ReviewFormDialog = ({ open, onClose, onClick }) => {
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>请您对 MUI 进行评价</DialogTitle>
+      <DialogTitle>Please comment</DialogTitle>
       <DialogContent>
         <Rating name="rating" value={rating} onChange={handleRatingChange} />
         <TextField
           name="comment"
           value={comment}
           onChange={handleCommentChange}
-          placeholder="请输入您的评价"
+          placeholder="Please enter your comments"
           multiline
           rows={4}
           margin="normal"
@@ -55,9 +55,9 @@ const ReviewFormDialog = ({ open, onClose, onClick }) => {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>取消</Button>
+        <Button onClick={handleClose}>cancel</Button>
         <Button onClick={handleSubmit} color="primary">
-          提交
+          submit
         </Button>
       </DialogActions>
     </Dialog>

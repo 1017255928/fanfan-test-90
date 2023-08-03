@@ -34,7 +34,7 @@ function Login() {
   const handleSubmit = event => {
     event.preventDefault();
     if(!isCode){
-      return Alert('The man-machine verification fails. Procedure')
+      return Alert('The man-machine check is failed')
     }
     fetch('/user/login', {
       method: 'POST',

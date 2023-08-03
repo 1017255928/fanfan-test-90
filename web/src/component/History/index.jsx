@@ -232,7 +232,7 @@ export default function CustomizedTables(props) {
               style={{ marginRight: "10px" }}
               variant="contained"
             >
-              post booking
+              past booking
             </Button>
 
             <Button onClick={() => history("/map")} variant="contained">

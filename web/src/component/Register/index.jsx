@@ -99,7 +99,7 @@ function Register() {
       return Alert("Two passwords do not match");
     }
     if(!isCode){
-      return Alert("The man-machine check fails");
+      return Alert("The man-machine check is failed");
     }
     if(!(/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/.test(nickname))){
       return Alert("Please enter the correct email address");

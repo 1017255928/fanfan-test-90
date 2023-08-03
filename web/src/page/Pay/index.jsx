@@ -123,6 +123,13 @@ const Checkout = () => {
       if (!formData.cardName) {
         return Alert("The name of the cardholder is blank");
       }
+
+      if (formData.cardNumber.length !== 16) {
+        return Alert("The card number is 16 bits");
+      }
+      if (formData.securityCode.length !== 3) {
+        return Alert("The cvc is 3 bits");
+      }
       if (!formData.cardNumber) {
         return Alert("The cardholder card number is empty");
       }
@@ -142,16 +149,17 @@ const Checkout = () => {
     var year = currentDate.getFullYear();
     var month = currentDate.getMonth() + 1;
     if (
-      new Date(`${event.target.value}`).getTime() < new Date(`${year}-${month}-01`).getTime()
+      new Date(`${event.target.value}`).getTime() <
+      new Date(`${year}-${month}-01`).getTime()
     ) {
       setFormData(res => ({
         ...res,
-        expirationDate: '',
-      }))
-      return Alert('The card has expired and cannot be paid')
+        expirationDate: "",
+      }));
+      return Alert("The card has expired and cannot be paid");
     }
   };
-  
+
   const handleBack = () => {
     if (typeNum) {
       history("/table/history");
@@ -161,7 +169,6 @@ const Checkout = () => {
   };
 
   const goClick = async () => {
-    
     // 计算自己的积分 (实际积分的积分)
     await fetch(
       "/user/" + userInfo.id,
@@ -170,8 +177,8 @@ const Checkout = () => {
       },
       async res => {
         if (res.code === "200") {
-          const jf = Number(res.data.integral || 0) -
-            parseInt(Number(intergral));
+          const jf =
+            Number(res.data.integral || 0) - parseInt(Number(intergral));
           // 计算自己的积分
           await fetch(
             "/user/" + userInfo.id,
@@ -197,7 +204,7 @@ const Checkout = () => {
       bank_code: formData.securityCode,
       bank_time: formData.expirationDate,
       price: amount,
-      integral: Number(parseInt(amount / 10)),//能获得多少积分
+      integral: Number(parseInt(amount / 10)), //能获得多少积分
       type: isType,
       parking_id: payItem.id,
       total_prices: amount,
@@ -451,7 +458,8 @@ const Checkout = () => {
                 }}
               />
               <p className="inter">
-                Rules for points: 10 points for 1 dollar.Point balance: {userInfo.integral}
+                Rules for points: 10 points for 1 dollar.Point balance:{" "}
+                {userInfo.integral}
               </p>
               <div className="pay_p">
                 <p style={{ textAlign: "right" }}>
@@ -505,7 +513,7 @@ const Checkout = () => {
               />
               <TextField
                 label="expiration date"
-                name="expirationDate" 
+                name="expirationDate"
                 className="muiFormControl-root-date"
                 onBlur={onBlur}
                 type={"date"}
@@ -581,7 +589,9 @@ const Checkout = () => {
                   </Typography>
                 </div>
                 <div className="checkout__confirmationRow">
-                  <Typography variant="subtitle1">Predetermined type</Typography>
+                  <Typography variant="subtitle1">
+                    Predetermined type
+                  </Typography>
                   <Typography variant="subtitle1">
                     $
                     {subscriptionPlan === "day"

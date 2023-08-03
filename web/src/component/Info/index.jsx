@@ -71,7 +71,7 @@ function Register() {
       password,
     };
     if (event !== false && !isCode) {
-      return Alert("The man-machine verification fails. Procedure");
+      return Alert("The man-machine check is failed");
     }
     fetch(
       "/user/" + userInfo.id,

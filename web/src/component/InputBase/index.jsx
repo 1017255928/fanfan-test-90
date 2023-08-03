@@ -17,6 +17,9 @@ export default function CustomizedInputBase() {
     });
   };
   const bindClick = () => {
+    if(!lgs){
+      return
+    }
     window.location.href = `/map?lng=${lgs.lng}&lat=${lgs.lat}`;
   }
   return (
@@ -34,9 +37,9 @@ export default function CustomizedInputBase() {
         <SearchIcon />
       </IconButton>
       <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-      <IconButton color="primary" sx={{ p: "10px" }} aria-label="directions">
+      {/* <IconButton color="primary" sx={{ p: "10px" }} aria-label="directions">
         <DirectionsIcon />
-      </IconButton>
+      </IconButton> */}
     </Paper>
   );
 }

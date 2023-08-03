@@ -333,7 +333,7 @@ export default function TemporaryDrawer(props) {
             onClick={mapClick}
           ></NewMap>
           <div className="drawer-item" style={{ display: "flex" }}>
-            <span>图片</span>
+            <span>image</span>
             {!props.disabled && (
               <div style={{ overflow: "hidden" }}>
                 <div className="upload-container">

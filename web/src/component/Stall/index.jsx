@@ -101,7 +101,7 @@ export default function CustomizedTables() {
         style={{ marginBottom: "10px",marginRight: "10px" }}
         variant="contained"
       >
-        post booking
+        past booking
       </Button> */}
       <Button
         onClick={() => [setType(1)]}

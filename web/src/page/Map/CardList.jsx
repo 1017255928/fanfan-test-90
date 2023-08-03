@@ -129,7 +129,7 @@ export default function RecipeReviewCard(props) {
               <SearchIcon />
             </IconButton>
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-            <IconButton
+            {/* <IconButton
               onClick={() =>
                 window.open("https://www.google.com/maps/?hl=zh-CN")
               }
@@ -138,7 +138,7 @@ export default function RecipeReviewCard(props) {
               aria-label="directions"
             >
               <DirectionsIcon />
-            </IconButton>
+            </IconButton> */}
           </Paper>
           <div className="search-type">
             <span onClick={() => setSearchType(1)}>price</span>

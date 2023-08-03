@@ -7,11 +7,13 @@ import fetch from "../../fetch";
 import "./index.scss";
 import { useEffect } from "react";
 
+const currentDate = new Date();
+const formattedDate = currentDate.toISOString().split("T")[0]; // 将日期转换为字符串格式
 function Register() {
   const [bankCard, setBankCard] = useState("");
   const [bankCode, setBankCode] = useState("");
   const [isCode, setIsCode] = useState(false);
-  const [bankTime, setBankTime] = useState("2023-08-31");
+  const [bankTime, setBankTime] = useState(formattedDate);
   const [userInfo, setUserInfo] = useState(
     sessionStorage.userInfo ? JSON.parse(sessionStorage.userInfo) : {}
   );
@@ -25,7 +27,7 @@ function Register() {
         setUserInfo(res.data);
         setBankCode(res.data.bank_code);
         setBankCard(res.data.bank_card);
-        setBankTime(res.data.bank_time || '2023-08-31');
+        setBankTime(res.data.bank_time || formattedDate);
       }
     );
   }, []);
@@ -72,6 +74,12 @@ function Register() {
   };
 
   const bankClick = () => {
+    if(bankCard.length !== 16){
+      return Alert('The card no is 16 bits')
+    }
+    if(bankCode.length !== 3){
+      return Alert('The cvc is 3 bits')
+    }
     const data = {
       ...userInfo,
       bank_card: bankCard,
@@ -80,7 +88,7 @@ function Register() {
     };
 
     if (!isCode) {
-      return Alert("The man-machine check fails");
+      return Alert("The man-machine check is failed");
     }
     fetch(
       "/user/" + userInfo.id,
